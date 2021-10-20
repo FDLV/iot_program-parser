@@ -1,9 +1,7 @@
 import React from 'react';
 import './App.css';
-// import Header from "./components/Header"
-// import Main from "./components/Main"
-// import Footer from "./components/Footer"
 import VacuumCleanerConnectiion from "./components/VacuumCleanerConnectiion"
+import FileSaver from 'file-saver';
 
 
 const ConnectionError = {
@@ -42,6 +40,20 @@ const PasswordStyle = {
   fontSize: "16px"
 }
 
+const SaveButtonDiv = {
+  textAlign: "center",
+  marginTop: "28vh",
+}
+
+const SaveButton = {
+  fontSize: "2em"
+}
+
+const SaveButtonMArginTop = {
+  marginTop: "40px",
+  fontSize: "2em"
+}
+
 class App extends React.Component {
   constructor(props) {
     super(props)
@@ -54,35 +66,13 @@ class App extends React.Component {
       battery: 0,
       vacuum_cleaner_state: 0,
       text: "",
-      SlideShowText: "Тихая уборка",
       PlayButton: false,
-      ButtonPressed: false,
       charging: false
 
     }
 
-    this.ClickDown = this.ClickDown.bind(this)
-    this.ClickUp = this.ClickUp.bind(this)
     this.Authorisation = this.Authorisation.bind(this)
     this.CheckToken = this.CheckToken.bind(this)
-    this.PlayPause = this.PlayPause.bind(this)
-    this.UpdateText = this.UpdateText.bind(this)    
-    this.UpdateSlideShowText = this.UpdateSlideShowText.bind(this)    
-    this.UpdateButtonPressed = this.UpdateButtonPressed.bind(this)    
-    this.StopTimer = this.StopTimer.bind(this)    
-    this.StartTimer = this.StartTimer.bind(this)    
-    this.UpdateCharging = this.UpdateCharging.bind(this)    
-
-  }
-
-  UpdateCharging(value) {
-    let self = this
-    self.setState({ charging: value });
-  }
-
-  UpdateButtonPressed() {
-    let self = this
-    self.setState({ ButtonPressed: false });
   }
   
   componentDidMount() {
@@ -325,246 +315,6 @@ class App extends React.Component {
     }, 2500);    
   }
 
-  StopTimer() {
-    clearInterval(this.interval);
-  }
-
-  StartTimer() {
-    this.interval = setInterval(() => {
-      let self = this
-    console.log(localStorage.getItem('token'))
-    
-    if (localStorage.getItem('token') !== "") {
-      
-      const GetResult = function (url, cb) {
-        const xhr = new XMLHttpRequest()
-        xhr.open(`post`, `http://localhost:5000/object`)
-        xhr.setRequestHeader('Content-Type', 'application/json')
-        xhr.setRequestHeader('Access-Control-Allow-Origin', 'dev.rightech.io');
-          
-        xhr.addEventListener(`load`, cb);
-  
-        xhr.send(JSON.stringify({token: localStorage.getItem('token')}))
-      }
-  
-      GetResult(`http://localhost:5000/object`, function (em) {
-        console.log("Ответ перед рендерингом")
-        //console.log(em.currentTarget.response)
-        if (JSON.parse(em.currentTarget.response).success === true) {
-          console.log("Токен действителен")
-          self.setState({ auth: 1 });
-
-          console.log(JSON.parse(em.currentTarget.response).state.vacuum_cleaner_state)
-
-          if (JSON.parse(em.currentTarget.response).state.online === true) {
-
-            if (JSON.parse(em.currentTarget.response).state.vacuum_cleaner_state === 1) {
-              self.setState({
-                 text: "тихая уборка",
-                 connection: true,
-                 charging: false,
-                 battery: JSON.parse(em.currentTarget.response).state.battery,
-                 dust_container_available_volume: JSON.parse(em.currentTarget.response).state.dust_container_available_volume,
-              })
-
-              //Добавлено; надо проверить. Режимы надо отдельно запускать. Единожды
-              if (JSON.parse(em.currentTarget.response).state.vacuum_cleaner_state !== self.state.vacuum_cleaner_state) {
-                const Timer2_ChangeStateTo1 = function (url, cb) {
-                  const xhr = new XMLHttpRequest()
-                  xhr.open(`post`, `http://localhost:5000/state1`)
-                  xhr.setRequestHeader('Content-Type', 'application/json')
-                  xhr.setRequestHeader('Access-Control-Allow-Origin', 'dev.rightech.io');
-                    
-                  xhr.addEventListener(`load`, cb);
-            
-                  xhr.send(JSON.stringify({token: localStorage.getItem('token')}))
-                }
-
-                Timer2_ChangeStateTo1(`http://localhost:5000/state1`, function (et) {
-                  console.log(JSON.parse(em.currentTarget.response))
-                })
-              }
-
-
-
-
-
-            }
-            else if (JSON.parse(em.currentTarget.response).state.vacuum_cleaner_state === 2) {
-              self.setState({
-                  text: "стандартная уборка",
-                  connection: true,
-                  PlayButton: true,
-                  charging: false,
-                  battery: JSON.parse(em.currentTarget.response).state.battery,
-                  dust_container_available_volume: JSON.parse(em.currentTarget.response).state.dust_container_available_volume,
-              })
-
-              if (JSON.parse(em.currentTarget.response).state.vacuum_cleaner_state !== self.state.vacuum_cleaner_state) {
-                const Timer2_ChangeStateTo2 = function (url, cb) {
-                  const xhr = new XMLHttpRequest()
-                  xhr.open(`post`, `http://localhost:5000/state2`)
-                  xhr.setRequestHeader('Content-Type', 'application/json')
-                  xhr.setRequestHeader('Access-Control-Allow-Origin', 'dev.rightech.io');
-                    
-                  xhr.addEventListener(`load`, cb);
-            
-                  xhr.send(JSON.stringify({token: localStorage.getItem('token')}))
-                }
-
-                Timer2_ChangeStateTo2(`http://localhost:5000/state2`, function (et) {
-                  console.log(JSON.parse(em.currentTarget.response))
-                })
-              }
-
-
-
-            }
-            else if (JSON.parse(em.currentTarget.response).state.vacuum_cleaner_state === 3) {
-              self.setState({
-                  text: "интенсивная уборка",
-                  connection: true,
-                  PlayButton: true,
-                  charging: false,
-                  battery: JSON.parse(em.currentTarget.response).state.battery,
-                  dust_container_available_volume: JSON.parse(em.currentTarget.response).state.dust_container_available_volume,
-              })
-
-              if (JSON.parse(em.currentTarget.response).state.vacuum_cleaner_state !== self.state.vacuum_cleaner_state) {
-                const Timer2_ChangeStateTo3 = function (url, cb) {
-                  const xhr = new XMLHttpRequest()
-                  xhr.open(`post`, `http://localhost:5000/state3`)
-                  xhr.setRequestHeader('Content-Type', 'application/json')
-                  xhr.setRequestHeader('Access-Control-Allow-Origin', 'dev.rightech.io');
-                    
-                  xhr.addEventListener(`load`, cb);
-            
-                  xhr.send(JSON.stringify({token: localStorage.getItem('token')}))
-                }
-
-                Timer2_ChangeStateTo3(`http://localhost:5000/state3`, function (et) {
-                  console.log(JSON.parse(em.currentTarget.response))
-                })
-              }
-
-
-            }
-            else if (JSON.parse(em.currentTarget.response).state.vacuum_cleaner_state === 4) {
-              self.setState({
-                  text: "зарядка",
-                  connection: true,
-                  PlayButton: true,
-                  charging: true,
-                  battery: JSON.parse(em.currentTarget.response).state.battery,
-                  dust_container_available_volume: JSON.parse(em.currentTarget.response).state.dust_container_available_volume,
-              })
-
-              if (JSON.parse(em.currentTarget.response).state.vacuum_cleaner_state !== self.state.vacuum_cleaner_state) {
-                const Timer2_ChangeStateTo4 = function (url, cb) {
-                  const xhr = new XMLHttpRequest()
-                  xhr.open(`post`, `http://localhost:5000/state4`)
-                  xhr.setRequestHeader('Content-Type', 'application/json')
-                  xhr.setRequestHeader('Access-Control-Allow-Origin', 'dev.rightech.io');
-                    
-                  xhr.addEventListener(`load`, cb);
-            
-                  xhr.send(JSON.stringify({token: localStorage.getItem('token')}))
-                }
-
-                Timer2_ChangeStateTo4(`http://localhost:5000/state4`, function (et) {
-                  console.log(JSON.parse(em.currentTarget.response))
-                })
-              }
-
-
-            }
-            else if (JSON.parse(em.currentTarget.response).state.vacuum_cleaner_state === 5) {
-              self.setState({
-                  text: "возвращение на зарядку",
-                  connection: true,
-                  PlayButton: false,
-                  charging: false,
-                  battery: JSON.parse(em.currentTarget.response).state.battery,
-                  dust_container_available_volume: JSON.parse(em.currentTarget.response).state.dust_container_available_volume,
-              })
-
-              if (JSON.parse(em.currentTarget.response).state.vacuum_cleaner_state !== self.state.vacuum_cleaner_state) {
-                const Timer2_ChangeStateTo5 = function (url, cb) {
-                  const xhr = new XMLHttpRequest()
-                  xhr.open(`post`, `http://localhost:5000/state5`)
-                  xhr.setRequestHeader('Content-Type', 'application/json')
-                  xhr.setRequestHeader('Access-Control-Allow-Origin', 'dev.rightech.io');
-                    
-                  xhr.addEventListener(`load`, cb);
-            
-                  xhr.send(JSON.stringify({token: localStorage.getItem('token')}))
-                }
-
-                Timer2_ChangeStateTo5(`http://localhost:5000/state5`, function (et) {
-                  console.log(JSON.parse(em.currentTarget.response))
-                })
-              }
-
-
-            }
-            else if (JSON.parse(em.currentTarget.response).state.vacuum_cleaner_state === 6) {
-              self.setState({
-                  text: "выключен",
-                  connection: true,
-                  charging: false,
-                  battery: JSON.parse(em.currentTarget.response).state.battery,
-                  dust_container_available_volume: JSON.parse(em.currentTarget.response).state.dust_container_available_volume,
-              })
-
-              if (JSON.parse(em.currentTarget.response).state.vacuum_cleaner_state !== self.state.vacuum_cleaner_state) {
-                const Timer2_ChangeStateTo6 = function (url, cb) {
-                  const xhr = new XMLHttpRequest()
-                  xhr.open(`post`, `http://localhost:5000/state6`)
-                  xhr.setRequestHeader('Content-Type', 'application/json')
-                  xhr.setRequestHeader('Access-Control-Allow-Origin', 'dev.rightech.io');
-                    
-                  xhr.addEventListener(`load`, cb);
-            
-                  xhr.send(JSON.stringify({token: localStorage.getItem('token')}))
-                }
-
-                Timer2_ChangeStateTo6(`http://localhost:5000/state6`, function (et) {
-                  console.log(JSON.parse(em.currentTarget.response))
-                })
-              }
-              else {
-                self.setState({PlayButton: false})                
-
-              }
-
-
-            }
-
-            self.setState({ vacuum_cleaner_state: JSON.parse(em.currentTarget.response).state.vacuum_cleaner_state })
-
-          }
-          else {
-            console.log("Пылесос выключен")
-            self.setState({ connection: false, vacuum_cleaner_state: 0 });
-          }
-
-        }
-        else {
-          console.log("Токен истёк")
-          localStorage.setItem('token', "")
-          self.setState({ auth: 0 });
-        }
-
-      })
-    } else {
-      console.log("Токен не существует")
-      localStorage.setItem('token', "")
-      self.setState({ auth: 0 });
-
-    }
-    }, 2500);   
-  }
-
   componentWillUnmount() {
     clearInterval(this.interval);
   }
@@ -651,33 +401,33 @@ class App extends React.Component {
     })
   }
 
-
-  PlayPause() {
-    if (this.state.PlayButton) {
-        this.setState({ PlayButton: false });
-    }
-    else {
-        this.setState({ PlayButton: true });
-    }
+  SaveFilesJSON() {
+    var blob = new Blob([
+      "{\n  \"dust_container_available_volume\": "+this.state.dust_container_available_volume+
+      ",\n  \"battery\": "+this.state.battery+
+      ",\n  \"vacuum_cleaner_state\": "+this.state.vacuum_cleaner_state+"\n}"
+    ], {type: "text/plain;charset=utf-8"});
+    FileSaver.saveAs(blob, "Data.json");
   }
 
-  UpdateText(value) {
-    this.setState({ text: value });
-}
-
-UpdateSlideShowText(value) {
-  this.setState({ SlideShowText: value });
-}
-
-
-
-
-  ClickDown() {
-    this.setState({ ColorBackground: "orange" });
+  SaveFilesHTML() {
+    var blob = new Blob([
+      "<table>\n<thead>\n<tr>\n<td>dust_container_available_volume</td>\n<td>battery</td>\n<td>vacuum_cleaner_state</td>\n</tr>\n</thead>\n<tr>\n<td>"
+      +this.state.dust_container_available_volume+"</td>\n<td>"
+      +this.state.battery+"</td>\n<td>"
+      +this.state.vacuum_cleaner_state+"</td>\n</tr>\n<tr>\n<td></td>\n</tr>\n</table>\n"
+    ], {type: "text/plain;charset=utf-8"});
+    FileSaver.saveAs(blob, "Data.html");
   }
 
-  ClickUp() {
-    this.setState({ ColorBackground: "red" });
+  SaveFilesXML() {
+    var blob = new Blob([
+      "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<root>\n  <dust_container_available_volume>"
+      +this.state.dust_container_available_volume+"</dust_container_available_volume>\n  <battery>"
+      +this.state.battery+"</battery>\n  <vacuum_cleaner_state>"
+      +this.state.vacuum_cleaner_state+"</vacuum_cleaner_state>\n</root>"
+    ], {type: "text/plain;charset=utf-8"});
+    FileSaver.saveAs(blob, "Data.xml");
   }
 
   render() {
@@ -685,11 +435,18 @@ UpdateSlideShowText(value) {
     if (this.state.auth === 1) {
       if (this.state.connection) {
         return (
-          <div>
-            КНОПКА!
-            {/* <Header charging={this.state.charging} battery={this.state.battery}/>
-            <Main UpdateCharging={this.UpdateCharging} StartTimer={this.StartTimer} StopTimer={this.StopTimer} text={this.state.text} SlideShowText={this.state.SlideShowText} PlayPause={this.PlayPause} UpdateSlideShowText={this.UpdateSlideShowText} UpdateText={this.UpdateText} PlayButton={this.state.PlayButton}/>
-            <Footer volume={this.state.dust_container_available_volume}/> */}
+          <div style={SaveButtonDiv}>
+            <button style={SaveButton} onClick={() => {this.SaveFilesJSON()}}>
+              Сохранить данные в формате JSON
+            </button>
+            <br></br>
+            <button style={SaveButtonMArginTop} onClick={() => {this.SaveFilesHTML()}}>
+              Сохранить данные в формате HTML
+            </button>
+            <br></br>
+            <button style={SaveButtonMArginTop} onClick={() => {this.SaveFilesXML()}}>
+              Сохранить данные в формате XML
+            </button>
           </div>
         );
       }
