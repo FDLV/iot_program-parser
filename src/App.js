@@ -42,7 +42,7 @@ const PasswordStyle = {
 
 const SaveButtonDiv = {
   textAlign: "center",
-  marginTop: "28vh",
+  marginTop: "7vh",
 }
 
 const SaveButton = {
@@ -67,7 +67,10 @@ class App extends React.Component {
       vacuum_cleaner_state: 0,
       text: "",
       PlayButton: false,
-      charging: false
+      charging: false,
+      PARSdust_container_available_volume: 0,
+      PARSbattery: 0,
+      PARSvacuum_cleaner_state: 0
 
     }
 
@@ -430,6 +433,70 @@ class App extends React.Component {
     FileSaver.saveAs(blob, "Data.xml");
   }
 
+  ParseFiles() {
+ 
+    let input = document.createElement('input');
+    input.type = 'file';
+
+    input.onchange = e => { 
+
+      let file = e.target.files[0]; 
+   
+      let reader = new FileReader();
+      reader.readAsText(file,'UTF-8');
+   
+      reader.onload = readerEvent => {
+         let content = readerEvent.target.result;
+         if (file.type === "text/html") {
+          let htmlObject = document.createElement('div');
+          htmlObject.innerHTML = content;
+
+          console.log(htmlObject.getElementsByTagName("td")[3].textContent)
+          console.log(htmlObject.getElementsByTagName("td")[4].textContent)
+          console.log(htmlObject.getElementsByTagName("td")[5].textContent)
+
+          this.setState({ 
+            PARSdust_container_available_volume: htmlObject.getElementsByTagName("td")[3].textContent,
+            PARSbattery: htmlObject.getElementsByTagName("td")[4].textContent,
+            PARSvacuum_cleaner_state: htmlObject.getElementsByTagName("td")[5].textContent
+          });
+         }
+         else if (file.type === "text/xml") {
+          let parser = new DOMParser();
+          let xmlDOM = parser.parseFromString(content, 'application/xml');
+          console.log(xmlDOM.querySelectorAll('dust_container_available_volume')[0].textContent)
+          console.log(xmlDOM.querySelectorAll('battery')[0].textContent)
+          console.log(xmlDOM.querySelectorAll('vacuum_cleaner_state')[0].textContent)
+
+
+          this.setState({ 
+            PARSdust_container_available_volume: xmlDOM.querySelectorAll('dust_container_available_volume')[0].textContent,
+            PARSbattery: xmlDOM.querySelectorAll('battery')[0].textContent,
+            PARSvacuum_cleaner_state: xmlDOM.querySelectorAll('vacuum_cleaner_state')[0].textContent
+          });
+         }
+         else if (file.type === "application/json") {
+           let jsonData = JSON.parse(content)
+
+           console.log(jsonData.dust_container_available_volume)
+           console.log(jsonData.battery)
+           console.log(jsonData.vacuum_cleaner_state)
+
+           this.setState({ 
+            PARSdust_container_available_volume: jsonData.dust_container_available_volume,
+            PARSbattery: jsonData.battery,
+            PARSvacuum_cleaner_state: jsonData.vacuum_cleaner_state
+          });
+
+         }
+      }
+   
+   }
+
+    input.click();
+   
+  }
+
   render() {
     console.log(this.state.auth)
     if (this.state.auth === 1) {
@@ -447,6 +514,19 @@ class App extends React.Component {
             <button style={SaveButtonMArginTop} onClick={() => {this.SaveFilesXML()}}>
               Сохранить данные в формате XML
             </button>
+            <br></br>
+            <br></br>
+            <br></br>
+            <button style={SaveButtonMArginTop} onClick={() => {this.ParseFiles()}}>
+              Извлечь данные из файла
+            </button>
+            <br></br>
+            <br></br>
+            <br></br>
+            <div>Последние извлеченные данные:</div>
+              Объём = {this.state.PARSdust_container_available_volume}&#8288;
+              Батарея = {this.state.PARSbattery}&#8288;
+              Состояние = {this.state.PARSvacuum_cleaner_state}&#8288;
           </div>
         );
       }
